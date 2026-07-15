@@ -22,7 +22,7 @@ ORDINAL_STRUCTURAL_NA = {
     "Garage Finish": "Unf",
     "Garage Qual": "Po",
     "Garage Cond": "Po",
-    "FireplaceQu": "Po",
+    "Fireplace Qu": "Po",
     "Pool QC": "Fa",
     "Fence": "MnWw",
 }
@@ -36,7 +36,7 @@ NOMINAL_STRUCTURAL_NA = {
 HAS_INDICATOR_GROUPS = {
     "Has_Basement": ["Bsmt Qual", "Bsmt Cond", "Bsmt Exposure", "BsmtFin Type 1", "BsmtFin Type 2"],
     "Has_Garage": ["Garage Type", "Garage Finish", "Garage Qual", "Garage Cond"],
-    "Has_Fireplace": ["FireplaceQu"],
+    "Has_Fireplace": ["Fireplace Qu"],
     "Has_Pool": ["Pool QC"],
     "Has_Fence": ["Fence"],
     "Has_Alley": ["Alley"],
@@ -109,7 +109,7 @@ def apply_structural_na_handling(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 ORDINAL_CATEGORIES = {
-    "Overall Qual": list(range(1, 11)),          # déjà numérique 1-10, inclus pour cohérence de l'API
+    "Overall Qual": list(range(1, 11)),         
     "Overall Cond": list(range(1, 11)),
     "Exter Qual": ["Po", "Fa", "TA", "Gd", "Ex"],
     "Exter Cond": ["Po", "Fa", "TA", "Gd", "Ex"],
@@ -129,7 +129,7 @@ ORDINAL_CATEGORIES = {
     "Garage Finish": ["Unf", "RFn", "Fin"],
     "Garage Qual": ["Po", "Fa", "TA", "Gd", "Ex"],
     "Garage Cond": ["Po", "Fa", "TA", "Gd", "Ex"],
-    "FireplaceQu": ["Po", "Fa", "TA", "Gd", "Ex"],
+    "Fireplace Qu": ["Po", "Fa", "TA", "Gd", "Ex"],
     "Pool QC": ["Fa", "TA", "Gd", "Ex"],
     "Fence": ["MnWw", "GdWo", "MnPrv", "GdPrv"],
 }

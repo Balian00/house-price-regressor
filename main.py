@@ -12,7 +12,7 @@ transformation logic of its own.
 """
 
 from src.data_loading import load_raw_data, split_features_target, train_test_split_data
-from src.preprocessing import build_preprocessor
+from src.preprocessing import build_preprocessor, apply_structural_na_handling
 """
 from src.models import get_candidate_models
 from src.evaluation import run_cross_validation, evaluate_final_model
@@ -37,9 +37,17 @@ def main():
     print("Splitting dataset...")
     X_train, X_test, y_train, y_test = train_test_split_data(X, y)
     print("Dataset splitted.")
-    print("Preprocessing X_train ...")
-    X_train_preprocessor = build_preprocessor(X_train)
-    print("X_train preprocessed")
+    print("Applying structural NaN handling...")
+    X_train = apply_structural_na_handling(X_train)
+    X_test = apply_structural_na_handling(X_test)
+    print("Structural NaN handled.")
+    print(X_train.shape)
+    print([c for c in X_train.columns if c.startswith("Has_")])
+
+    print("Building preprocessor...")
+    preprocessor = build_preprocessor(X_train)
+    print("Preprocessor built.")
+    print(preprocessor)
     
     
 
