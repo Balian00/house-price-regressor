@@ -12,8 +12,8 @@ transformation logic of its own.
 """
 
 from src.data_loading import load_raw_data, split_features_target, train_test_split_data
-"""
 from src.preprocessing import build_preprocessor
+"""
 from src.models import get_candidate_models
 from src.evaluation import run_cross_validation, evaluate_final_model
 import pandas as pd """
@@ -37,8 +37,10 @@ def main():
     print("Splitting dataset...")
     X_train, X_test, y_train, y_test = train_test_split_data(X, y)
     print("Dataset splitted.")
-    print(X_train.shape)
-    print(X_test.shape)
+    print("Preprocessing X_train ...")
+    X_train_preprocessor = build_preprocessor(X_train)
+    print("X_train preprocessed")
+    
     
 
 if __name__ == "__main__":

@@ -15,16 +15,14 @@ def load_raw_data(filepath : str) -> pd.DataFrame :
     """
     Loads the raw CSV file of the Ames Housing dataset.
 
-    Parameters
-    ----------
-    filepath : str or Path
-        Path to the raw CSV file (expected in data/raw/).
+    Parameters :
+    -------------
+        filepath : Path to the raw CSV file (expected in data/raw/).
 
-    Returns
-    -------
-    pd.DataFrame
-        The full dataset, as is, without any transformation.
-        Still contains SalePrice and all missing values.
+    Returns :
+    ------------
+    The full dataset, as is, without any transformation.
+    Still contains SalePrice and all missing values.
     """
     return pd.read_csv(filepath, sep=',', na_values=None, dtype=None)
 
@@ -33,21 +31,21 @@ def split_features_target(df: pd.DataFrame, target_column: str = "SalePrice") ->
     """
     Splits the DataFrame into features (X) and target (y).
 
-    Parameters
+    Parameters :
     ----------
-    df : pd.DataFrame
-        The full dataset, as returned by load_raw_data.
-    target_column : str
-        Name of the target column to predict.
+    df : The full dataset, as returned by load_raw_data.
+    target_column : Name of the target column to predict.
 
-    Returns
+    Returns :
     -------
-    X : pd.DataFrame
-        All columns except the target.
-    y : pd.Series
-        The target column alone.
+    X : All columns except the target.
+    y : The target column alone.
     """
-    X = df.drop(columns=target_column)
+    try:
+        X = df.drop(columns=[target_column, "PID", "Order"])
+    except KeyError as e:
+        print(f"Colonne manquante : {e}")
+        X = df.drop(columns=[target_column], errors="ignore")
     y = df[target_column]
     return X, y
 
@@ -62,17 +60,13 @@ def train_test_split_data(X : pd.DataFrame, y : pd.Series, test_size : float = 0
 
     Parameters
     ----------
-    X : pd.DataFrame
-        Full features.
-    y : pd.Series
-        Full target.
-    test_size : float
-        Proportion of the dataset reserved for testing (0.2 = 20%).
-    random_state : int
-        Random seed for split reproducibility.
+    X : Full features.
+    y : Full target.
+    test_size : Proportion of the dataset reserved for testing (0.2 = 20%).
+    random_state : Random seed for split reproducibility.
 
     Returns
     -------
-    X_train, X_test, y_train, y_test : pd.DataFrame / pd.Series
+    X_train, X_test, y_train, y_test : DataFrames of train and test
     """
     return train_test_split(X, y, test_size=test_size, random_state=random_state)
