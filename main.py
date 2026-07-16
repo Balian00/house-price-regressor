@@ -70,6 +70,7 @@ def main(mode : str) -> None:
 
         best_name, best_model = select_best_model(results)
         print(f"Best model: {best_name}")
+        save_results(results, best_model)
         print("Best model saved.")
         
     elif mode == "test" :
