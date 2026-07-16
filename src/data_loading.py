@@ -24,7 +24,7 @@ def load_raw_data(filepath : str) -> pd.DataFrame :
     The full dataset, as is, without any transformation.
     Still contains SalePrice and all missing values.
     """
-    return pd.read_csv(filepath, sep=',', na_values=None, dtype=None)
+    return pd.read_csv(filepath, sep=',', na_values=None, dtype=None, index_col=0)
 
 
 def split_features_target(df: pd.DataFrame, target_column: str = "SalePrice") -> tuple[pd.DataFrame, pd.Series]:

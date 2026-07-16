@@ -11,10 +11,17 @@ from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
+from sklearn.compose import TransformedTargetRegressor
+from sklearn.preprocessing import StandardScaler
 
-
-def get_all_pipelines(preprocessor: ColumnTransformer) -> dict[str, Pipeline]:
+def get_all_pipelines(preprocessor: ColumnTransformer) -> dict[str, TransformedTargetRegressor]:
     """Build one pipeline per model family, sharing the same preprocessor.
+
+    Each pipeline is wrapped in a TransformedTargetRegressor that scales
+    y (StandardScaler) before fitting and inverse-transforms predictions
+    back to the original dollar scale. This avoids convergence issues in
+    penalized linear models (e.g. Lasso) caused by the large, unscaled
+    magnitude of SalePrice relative to standardized features.
 
     Parameters
     ----------
@@ -28,30 +35,46 @@ def get_all_pipelines(preprocessor: ColumnTransformer) -> dict[str, Pipeline]:
 
     Returns
     -------
-    dict[str, Pipeline] :
-        Mapping from model family name to its corresponding Pipeline,
-        each with a "preprocessor" step and a "model" step holding the
-        estimator at default hyperparameters.
+    dict[str, TransformedTargetRegressor] :
+        Mapping from model family name to its corresponding
+        TransformedTargetRegressor, each wrapping a Pipeline with a
+        "preprocessor" step and a "model" step holding the estimator
+        at default hyperparameters.
     """
     return {
-            "ols" : Pipeline([
-                ("preprocessor", preprocessor),
-                ("model", LinearRegression())
-            ]),
-            "ridge" : Pipeline([
-                ("preprocessor", preprocessor),
-                ("model", Ridge())
-            ]),
-            "lasso" : Pipeline([
-                ("preprocessor", preprocessor),
-                ("model", Lasso())
-            ]),
-            "random_forest" : Pipeline([
-                ("preprocessor", preprocessor),
-                ("model", RandomForestRegressor())
-            ]),
-            "gradient_boosting" : Pipeline([
-                ("preprocessor", preprocessor),
-                ("model", GradientBoostingRegressor())
-            ]),
+            "ols" : TransformedTargetRegressor(
+                regressor=Pipeline([
+                    ("preprocessor", preprocessor),
+                    ("model", LinearRegression())
+                ]),
+                transformer=StandardScaler()
+            ),
+            "ridge" : TransformedTargetRegressor(
+                regressor=Pipeline([
+                    ("preprocessor", preprocessor),
+                    ("model", Ridge())
+                ]),
+                transformer=StandardScaler()
+            ),
+            "lasso" : TransformedTargetRegressor(
+                regressor=Pipeline([
+                    ("preprocessor", preprocessor),
+                    ("model", Lasso())
+                ]),
+                transformer=StandardScaler()
+            ),
+            "random_forest" : TransformedTargetRegressor(
+                regressor=Pipeline([
+                    ("preprocessor", preprocessor),
+                    ("model", RandomForestRegressor())
+                ]),
+                transformer=StandardScaler()
+            ),
+            "gradient_boosting" : TransformedTargetRegressor(
+                regressor=Pipeline([
+                    ("preprocessor", preprocessor),
+                    ("model", GradientBoostingRegressor())
+                ]),
+                transformer=StandardScaler()
+            ),
         }

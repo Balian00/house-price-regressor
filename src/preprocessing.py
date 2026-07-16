@@ -13,6 +13,26 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, StandardScaler
 
+KNOWN_DATA_ERRORS = {
+    "Garage Yr Blt": {2260: 2007},  # probable digit inversion 2007 -> 2207
+}
+
+
+def fix_known_data_errors(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Correct specific, manually verified erroneous values (typos, digit
+    inversions) identified during exploration. Fixed rules, not statistics
+    learned from data — safe to apply to train and test independently.
+    Must run before any NaN handling on the affected columns.
+    """
+    df = df.copy()
+    for column, corrections in KNOWN_DATA_ERRORS.items():
+        for index, correct_value in corrections.items():
+            if index in df.index:
+                df.loc[index, column] = correct_value
+    return df
+
+
 ORDINAL_STRUCTURAL_NA = {
     "Bsmt Qual": "Po",
     "Bsmt Cond": "Po",
@@ -91,8 +111,10 @@ def fill_structural_na(df: pd.DataFrame) -> pd.DataFrame:
 
 def apply_structural_na_handling(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Run the full structural NaN handling: add Has_X indicators, then fill
-    the NaN they were derived from.
+    Run the full cleaning + structural NaN handling, in order:
+    1. fix known punctual data errors (e.g. typos) on the affected columns
+    2. add Has_X indicators from the (still raw) NaN pattern
+    3. fill the structural NaN the indicators were derived from
 
     Parameters
     ----------
@@ -101,15 +123,18 @@ def apply_structural_na_handling(df: pd.DataFrame) -> pd.DataFrame:
 
     Returns
     -------
-        Copy of `df` with Has_X indicators added and structural NaN filled.
-        Call once per split independently, never on the two combined.
+        Copy of `df` with known errors fixed, Has_X indicators added, and
+        structural NaN filled. Call once per split independently, never on
+        the two combined.
     """
+    df = fix_known_data_errors(df)
     df = add_structural_indicators(df)
     df = fill_structural_na(df)
     return df
 
+
 ORDINAL_CATEGORIES = {
-    "Overall Qual": list(range(1, 11)),         
+    "Overall Qual": list(range(1, 11)),
     "Overall Cond": list(range(1, 11)),
     "Exter Qual": ["Po", "Fa", "TA", "Gd", "Ex"],
     "Exter Cond": ["Po", "Fa", "TA", "Gd", "Ex"],
@@ -180,11 +205,11 @@ def get_column_groups(df: pd.DataFrame) -> tuple[list[str], list[str], list[str]
         if col not in ordinal_columns:
             nominal_columns.append(col)
 
-    for col in NUMERIC_BUT_NOMINAL: # juste one here
+    for col in NUMERIC_BUT_NOMINAL:  # juste one here
         if col in df.columns:
             nominal_columns.append(col)
 
-    discrete_columns = [] # all remaining colmuns a priori
+    discrete_columns = []  # all remaining columns a priori
     for col in df.select_dtypes(include="number").columns:
         is_ordinal = col in ordinal_columns
         is_continuous = col in continuous_columns
@@ -194,6 +219,7 @@ def get_column_groups(df: pd.DataFrame) -> tuple[list[str], list[str], list[str]
             discrete_columns.append(col)
 
     return ordinal_columns, continuous_columns, nominal_columns, discrete_columns
+
 
 def build_nominal_pipeline() -> Pipeline:
     """
@@ -253,6 +279,7 @@ def build_preprocessor(df: pd.DataFrame) -> ColumnTransformer:
     ordinal_categories = [ORDINAL_CATEGORIES[col] for col in ordinal_columns]
 
     ordinal_pipeline = Pipeline([
+        ("imputer", SimpleImputer(strategy="most_frequent")),
         ("encoder", OrdinalEncoder(categories=ordinal_categories)),
     ])
 
